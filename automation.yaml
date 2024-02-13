@@ -1,6 +1,6 @@
 #you can copy the code below in a newly created automation. These comment ines will disappear after saving the automation. 
 
-alias: CV 0.1 woonkamer schema
+alias: _new climate schema
 description: ""
 trigger:
   - platform: time_pattern
