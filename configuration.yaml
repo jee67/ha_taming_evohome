@@ -2,7 +2,7 @@
 
 #dummy switches, needed for the fake thermostats
 #if you have switch: in your configuration.yaml, avoid another line with switch, since this will result in an error. Add this code to it.
-#change the name in accordance with the related climate: entity
+#change the name in accordance with the related climate: entity . In this example the zone to tame is 'woonkamer'
 switch:
   - platform: template
     switches:
