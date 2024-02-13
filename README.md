@@ -1,0 +1,1 @@
+ Home assistant code for taming an EvoHome controller in case of an hybrid heatpump. Evohome will send a much higer heatrequest to the hetapump controller, which will result in a boiler assist where this is not always necessary. 
