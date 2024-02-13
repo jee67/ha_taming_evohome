@@ -20,11 +20,11 @@ action:
       target_temp: "{{ state_attr(fake_term, 'temperature')}}"
   - alias: "Manual override, setpoint or EH schedule "
     if:
-      - alias: Test if not manual override, true means selecting a setpoint- standard action
+      - alias: Test for manual override is lower than 15 (no override)
         condition: template
-          value_template: "{{ (states(temp_override) | float ) < 15}}"
+        value_template: "{{ (states(temp_override) | float ) < 15}}"
     then:
-      - alias: Select setpoint
+      - alias: Select setpoint actions or standard actions
         choose:
           - conditions:
               - alias: Setpoint period 1
@@ -178,7 +178,7 @@ action:
               entity_id: "{{delta_var}}"
     else:
       - variables:
-          setpoint_temp: "{{ states('input_number.woonkamer_man_temp') }}"
+          setpoint_temp: "{{ states(temp_override) }}"
       - service: climate.set_temperature
         data:
           temperature: "{{setpoint_temp}}"
@@ -198,7 +198,7 @@ action:
     then:
       - service: input_number.set_value
         target:
-          entity_id: input_number.woonkamer_man_temp
+          entity_id: "{{temp_override}}"
         data:
           value: 0
 mode: single
