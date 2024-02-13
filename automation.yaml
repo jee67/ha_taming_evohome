@@ -1,5 +1,6 @@
-#you can copy the code below in a newly created automation. The comments behind '#' will disappear after saving the automation. 
-#you should change the entity_id in the first trigger and name: under the vairables to suit the zone you want to 
+#you can copy the code below in a newly created automation in the YAML editor. Remove anything and paste the code below 
+#The comments behind '#' will disappear after saving the automation. 
+#in line change line 11 and line 15 you should change the entity_id and name:  to suit the zone you want to regulate
 alias: _new climate schema
 description: ""
 trigger:
