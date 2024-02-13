@@ -1,5 +1,11 @@
 alias: _new Real Thermostat Temperature
-description: ""
+description: >-
+  Instructions
+
+  - change the entity_id in the trigger and in the condition to use the correct
+  fake thermostat. Trigger and condition cannot be replaced by variales.
+
+  - 
 trigger:
   - platform: time_pattern
     minutes: /5
@@ -9,6 +15,7 @@ trigger:
     attribute: temperature
 condition:
   - condition: not
+    alias: Do Not execute if the zone has a permanent temperature setting
     conditions:
       - condition: state
         entity_id: climate.woonkamer
@@ -16,13 +23,18 @@ condition:
         state: permanent
 action:
   - variables:
-      room_temp: "{{ states('sensor.current_temp_woonkamer') | float | round(1) }}"
-      room_set_temp: "{{ states('sensor.target_heat_woonkamer') | float | round(1) }}"
-      target_temp: >-
-        {{ state_attr('climate.woonkamer_fake_thermostat', 'temperature') |
-        float | round(1) }}
-      delta_temp: "{{ states('input_number.delta_woonkamer') | float | round(1) }}"
-      setpoint: "{{ states('sensor.current_setpoint_woonkamer') | float | round(1) }}"
+      name: woonkamer
+      real_therm: climate.{{name}}
+      fake_therm: climate.{{name}}_fake_thermostat
+      delta_var: input_number.delta_{{name}}
+      room_temp: "{{ state_attr(real_therm, 'current_temperature') | float | round(1) }}"
+      room_set_temp: "{{ state_attr(real_therm, 'temperature') | float | round(1) }}"
+      target_temp: "{{ state_attr(fake_therm, 'temperature') | float | round(1) }}"
+      delta_temp: "{{ states(delta_var) | float | round(1) }}"
+      setpoint: >-
+        {{ state_attr(real_therm,'status').setpoints.this_sp_temp | float |
+        round(1) }}
+    alias: Define the variables for the remainder of the automation
   - choose:
       - conditions:
           - condition: or
@@ -46,9 +58,9 @@ action:
                     enabled: true
                     alias: Room setpoint lower target
         sequence:
-          - alias: Wachten tot aanroep EvoHome service > 5 minuten gelden
+          - alias: Wait with calling EvoHome service > 5 minuten
             if:
-              - alias: "EVO aanroep minder dan 5 minuten geleden "
+              - alias: EVO call les than 5 minuten ago?
                 condition: template
                 value_template: >-
                   {{(as_timestamp(now())/60) <
@@ -60,12 +72,10 @@ action:
                   (((as_timestamp(states.input_datetime.evo_aangeroepen.state) /
                   60 ) + 5))}}
                 continue_on_timeout: true
-                alias: Wachten tot aanroep evo meer dan 5 minuten is geleden
-          - variables:
-              room_temp: "{{ states('sensor.current_temp_woonkamer') | float | round(1) }}"
+                alias: Wait with Evo call after it's over 5 minutes
           - service: evohome.set_zone_override
             data:
-              entity_id: climate.woonkamer
+              entity_id: "{{ real_therm }}"
               duration:
                 hours: 5
               setpoint: >-
@@ -85,14 +95,12 @@ action:
             value_template: "{{ setpoint == target_temp }}"
           - condition: not
             conditions:
-              - condition: state
-                entity_id: climate.woonkamer
-                attribute: preset_mode
-                state: none
+              - condition: template
+                value_template: "  {{is_state_attr(real_therm,'preset_mode', 'none')}}"
         sequence:
-          - alias: Wachten tot aanroep EvoHome service > 10 minuten gelden
+          - alias: Wait with calling EvoHome service > 5 minuten
             if:
-              - alias: "EVO aanroep minder dan 5 minuten geleden "
+              - alias: "EVO call less than 5 minuten ago? "
                 condition: template
                 value_template: >-
                   {{(as_timestamp(now())/60) <
@@ -104,14 +112,14 @@ action:
                   (((as_timestamp(states.input_datetime.evo_aangeroepen.state) /
                   60 ) + 5))}}
                 continue_on_timeout: true
+                alias: Wait until 5 minutes passed
           - service: evohome.clear_zone_override
             data:
-              entity_id: climate.woonkamer
+              entity_id: "{{ real_therm }}"
           - service: input_datetime.set_datetime
             data:
               timestamp: "{{ now().timestamp() }}"
             target:
               entity_id: input_datetime.evo_aangeroepen
-        alias: target bereikt, setpoint hoger of gelijk target
+        alias: target reached, setpoint higher or equal target
 mode: restart
-
