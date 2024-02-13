@@ -1,10 +1,8 @@
 alias: _new climate schema
 description: >-
   you can copy this code in a newly created automation in the YAML editor.
-  Remove anything and paste this code.
-  The comments behind '#' will disappear after saving the automation and
-  switching to the Visual Editor. 
-  In line 14 and line 18 you should change the entity_id and name to suit the zone you want to regulate
+  Remove anything and paste this code. After that, you could return to the visual editor for further changes.
+  In line 11 and line 15 you should change the entity_id and name to suit the zone you want to regulate
 trigger:
   - platform: time_pattern
     minutes: /5
