@@ -1,1 +1,117 @@
+alias: _new Real Thermostat Temperature
+description: ""
+trigger:
+  - platform: time_pattern
+    minutes: /5
+  - platform: state
+    entity_id:
+      - climate.woonkamer_fake_thermostat
+    attribute: temperature
+condition:
+  - condition: not
+    conditions:
+      - condition: state
+        entity_id: climate.woonkamer
+        attribute: preset_mode
+        state: permanent
+action:
+  - variables:
+      room_temp: "{{ states('sensor.current_temp_woonkamer') | float | round(1) }}"
+      room_set_temp: "{{ states('sensor.target_heat_woonkamer') | float | round(1) }}"
+      target_temp: >-
+        {{ state_attr('climate.woonkamer_fake_thermostat', 'temperature') |
+        float | round(1) }}
+      delta_temp: "{{ states('input_number.delta_woonkamer') | float | round(1) }}"
+      setpoint: "{{ states('sensor.current_setpoint_woonkamer') | float | round(1) }}"
+  - choose:
+      - conditions:
+          - condition: or
+            conditions:
+              - condition: and
+                conditions:
+                  - condition: template
+                    value_template: "{{ room_temp < target_temp }}"
+                    alias: Actual lower than target
+                  - condition: template
+                    value_template: "{{ room_set_temp < (room_temp + delta_temp) }}"
+                    enabled: true
+                    alias: Room setpoint lower actual + delta
+              - condition: and
+                conditions:
+                  - condition: template
+                    value_template: "{{ room_temp >= target_temp }}"
+                    alias: Actual hoger of equal target
+                  - condition: template
+                    value_template: "{{ room_set_temp < target_temp }}"
+                    enabled: true
+                    alias: Room setpoint lower target
+        sequence:
+          - alias: Wachten tot aanroep EvoHome service > 5 minuten gelden
+            if:
+              - alias: "EVO aanroep minder dan 5 minuten geleden "
+                condition: template
+                value_template: >-
+                  {{(as_timestamp(now())/60) <
+                  (((as_timestamp(states.input_datetime.evo_aangeroepen.state) /
+                  60 ) + 5))}}
+            then:
+              - wait_template: >-
+                  {{(as_timestamp(now())/60) >=
+                  (((as_timestamp(states.input_datetime.evo_aangeroepen.state) /
+                  60 ) + 5))}}
+                continue_on_timeout: true
+                alias: Wachten tot aanroep evo meer dan 5 minuten is geleden
+          - variables:
+              room_temp: "{{ states('sensor.current_temp_woonkamer') | float | round(1) }}"
+          - service: evohome.set_zone_override
+            data:
+              entity_id: climate.woonkamer
+              duration:
+                hours: 5
+              setpoint: >-
+                {{ min(max((room_temp + delta_temp), room_set_temp),
+                target_temp)  }}
+            enabled: true
+          - service: input_datetime.set_datetime
+            data:
+              timestamp: "{{ now().timestamp() }}"
+            target:
+              entity_id: input_datetime.evo_aangeroepen
+        alias: target not reached or setpoint under target
+      - conditions:
+          - condition: template
+            value_template: "{{ room_temp >= target_temp }}"
+          - condition: template
+            value_template: "{{ setpoint == target_temp }}"
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: climate.woonkamer
+                attribute: preset_mode
+                state: none
+        sequence:
+          - alias: Wachten tot aanroep EvoHome service > 10 minuten gelden
+            if:
+              - alias: "EVO aanroep minder dan 5 minuten geleden "
+                condition: template
+                value_template: >-
+                  {{(as_timestamp(now())/60) <
+                  (((as_timestamp(states.input_datetime.evo_aangeroepen.state) /
+                  60 ) + 5))}}
+            then:
+              - wait_template: >-
+                  {{(as_timestamp(now())/60) >=
+                  (((as_timestamp(states.input_datetime.evo_aangeroepen.state) /
+                  60 ) + 5))}}
+                continue_on_timeout: true
+          - service: evohome.clear_zone_override
+            data:
+              entity_id: climate.woonkamer
+          - service: input_datetime.set_datetime
+            data:
+              timestamp: "{{ now().timestamp() }}"
+            target:
+              entity_id: input_datetime.evo_aangeroepen
+        alias: target bereikt, setpoint hoger of gelijk target
+mode: restart
 
