@@ -18,10 +18,9 @@ action:
       target_temp: "{{ state_attr(fake_term, 'temperature')}}"
   - alias: "Manual override, setpoint or EH schedule "
     if:
-      - alias: Test if not manual override
-        condition: numeric_state
-        entity_id: input_number.woonkamer_man_temp
-        below: 15
+      - alias: Test if not manual override, true means selecting a setpoint- standard action
+        condition: template
+          value_template: "{{ (states(temp_override) | float ) < 15}}"
     then:
       - alias: Select setpoint
         choose:
