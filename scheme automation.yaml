@@ -3,7 +3,9 @@ description: >-
   you can copy this code in a newly created automation in the YAML editor.
   Remove anything and paste this code. After that, you could return to the visual editor for further changes.
   In the trigger you should change the entity_id and in the first variables block you should change name to suit the
-  zone you want to regulate
+  zone you want to regulate.
+  See conditions 'below 6' and 'above 12' for an outside temperature sensor. 
+  You should change it to a sensor in your own system
 trigger:
   - platform: time_pattern
     minutes: /5
