@@ -11,7 +11,7 @@ switch:
         turn_on:
         turn_off:
 
-#fake thermostats, for every zone you want to influece, you need one
+#fake thermostat, you need one for every zone you want to influece.
 #if you have climate: in your configuration.yaml, avoid another line with climate, since this will result in an error.  Add this code to it.
 #change name: heater: and target_sensor:
 climate:
@@ -29,7 +29,7 @@ climate:
     initial_hvac_mode: 'heat'
     precision: 0.1
 
-#helper, to limit the service calls to evo, otherwise the service might be postponed
+#helper, to limit the service calls to EvoHome, otherwise the service might be postponed
 input_datetime:
   evo_aangeroepen:
     name: evo laatste aanroep
