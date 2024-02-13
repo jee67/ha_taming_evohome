@@ -38,7 +38,7 @@ input_datetime:
   
 #helpers for every zone, to set the increease of the setpoints
 #if you have input_numer: in your configuration.yaml, avoid another line with input_numer, since this will result in an error. Add this code to it.
-# to low might result in not rising temperatures, to high in increasing boiler support 
+#too low might result in not rising temperatures, to high in increasing boiler support 
 input_number:
   delta_woonkamer:
     name: Delta Woonkamer
