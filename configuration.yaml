@@ -1,0 +1,116 @@
+#fake thermostats, for every zone you want to influece, you need one
+climate:
+  - platform: generic_thermostat
+    name: Woonkamer Fake Thermostat
+    unique_id: ft_wk
+    heater: switch.dummy_woonkamer_switch
+    target_sensor: sensor.current_temp_woonkamer
+    min_temp: 15
+    max_temp: 25
+    ac_mode: false
+    # target_temp: 20
+    # cold_tolerance: 0.1
+    # hot_tolerance: 0.1
+    initial_hvac_mode: 'heat'
+    precision: 0.1
+  - platform: generic_thermostat
+    name: Badkamer Fake Thermostat
+    unique_id: ft_bk
+    heater: switch.dummy_badkamer_switch
+    target_sensor: sensor.current_temp_badkamer
+    min_temp: 15
+    max_temp: 25
+    ac_mode: false
+    # target_temp: 20
+    # cold_tolerance: 0.1
+    # hot_tolerance: 0.1
+    initial_hvac_mode: 'heat'
+    precision: 0.1
+  - platform: generic_thermostat
+    name: Werkkamer Fake Thermostat
+    unique_id: ft_wrk
+    heater: switch.dummy_werkkamer_switch
+    target_sensor: sensor.current_temp_werkkamer
+    min_temp: 15
+    max_temp: 25
+    ac_mode: false
+    # target_temp: 20
+    # cold_tolerance: 0.1
+    # hot_tolerance: 0.1
+    initial_hvac_mode: 'heat'
+    precision: 0.1
+
+#dummy switches, needed for the fake thermostats
+switch:
+  - platform: template
+    switches:
+      dummy_woonkamer_switch:
+        #value_template: "{{ false  }}"
+        turn_on:
+        turn_off:
+  - platform: template
+    switches:
+      dummy_badkamer_switch:
+        #value_template: "{{ false  }}"
+        turn_on:
+        turn_off:
+  - platform: template
+    switches:
+      dummy_werkkamer_switch:
+        #value_template: "{{ false  }}"
+        turn_on:
+        turn_off:        
+
+#helper, to limit the service calls to evo, otherwise the service might be postponed
+input_datetime:
+  evo_aangeroepen:
+    name: evo laatste aanroep
+    has_date: true
+    has_time: true
+  
+#helpers for every zone, to set the increease of the setpoints
+# to low might result in not rising temperatures, to high in increasing boiler support 
+input_number:
+  delta_woonkamer:
+    name: Delta Woonkamer
+    initial: 0.1
+    min: 0.1
+    max: 0.7
+    step: 0.1
+  delta_badkamer:
+    name: Delta Badkamer
+    initial: 0.1
+    min: 0.1
+    max: 0.7
+    step: 0.1
+  delta_werkkamer:
+    name: Delta Werkkamer
+    initial: 0.1
+    min: 0.1
+    max: 0.7
+    step: 0.1
+  evo_wait_time: 
+    name: wait to call EVO service
+    initial: 5
+    min: 5
+    max: 30
+    step: 1
+#Helper variables to overrule schedule temperature
+  woonkamer_man_temp:
+    name: Woonkamer manual temp
+    min: 0.0
+    max: 25
+    step: 0.1
+    mode: box
+  badkamer_man_temp:
+    name: Badkamer manual temp
+    min: 0.0
+    max: 25
+    step: 0.1
+    mode: box
+  werkkamer_man_temp:
+    name: Werkkamer manual temp
+    min: 0.0
+    max: 25
+    step: 0.1
+    mode: box
