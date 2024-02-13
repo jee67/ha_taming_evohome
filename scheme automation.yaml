@@ -1,18 +1,20 @@
-#you can copy the code below in a newly created automation in the YAML editor. Remove anything and paste the code below 
-#The comments behind '#' will disappear after saving the automation and switching to the Visual Editor. 
-#in line change line 11 and line 15 you should change the entity_id and name: to suit the zone you want to regulate
 alias: _new climate schema
-description: ""
+description: >-
+  you can copy this code in a newly created automation in the YAML editor.
+  Remove anything and paste this code.
+  The comments behind '#' will disappear after saving the automation and
+  switching to the Visual Editor. 
+  In line 14 and line 18 you should change the entity_id and name to suit the zone you want to regulate
 trigger:
   - platform: time_pattern
     minutes: /5
   - platform: state
     entity_id:
-      - input_number.woonkamer_man_temp #change for your own setup
+      - input_number.woonkamer_man_temp
 condition: []
 action:
   - variables:
-      name: woonkamer #change for your own setup
+      name: woonkamer
       real_term: climate.{{name}}
       fake_term: climate.{{name}}_fake_thermostat
       delta_var: input_number.delta_{{name}}
