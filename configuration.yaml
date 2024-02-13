@@ -11,9 +11,9 @@ switch:
         turn_on:
         turn_off:
 
-#fake thermostat, you need one for every zone you want to influece.
+#fake thermostat, you need one for every zone you want to regulate.
 #if you have climate: in your configuration.yaml, avoid another line with climate, since this will result in an error.  Add this code to it.
-#change name: heater: and target_sensor:
+#change name: heater: and target_sensor: for your setup
 climate:
   - platform: generic_thermostat
     name: Woonkamer Fake Thermostat
@@ -29,7 +29,7 @@ climate:
     initial_hvac_mode: 'heat'
     precision: 0.1
 
-#helper, to limit the service calls to EvoHome, otherwise the service might be postponed
+#helper, to limit the service calls to EvoHome, otherwise the service might be refused
 input_datetime:
   evo_aangeroepen:
     name: evo laatste aanroep
@@ -39,6 +39,7 @@ input_datetime:
 #helpers for every zone, to set the increease of the setpoints
 #if you have input_numer: in your configuration.yaml, avoid another line with input_numer, since this will result in an error. Add this code to it.
 #too low might result in not rising temperatures, to high in increasing boiler support 
+#change woonkamer into the correct zone name
 input_number:
   delta_woonkamer:
     name: Delta Woonkamer
@@ -48,6 +49,7 @@ input_number:
     step: 0.1
 
 #Helper variables to overrule schedule temperature
+#change woonkamer into the correct zone name
   woonkamer_man_temp:
     name: Woonkamer manual temp
     min: 0.0
