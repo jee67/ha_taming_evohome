@@ -1,1 +1,205 @@
-
+#you can copy the code below in a newly created automation in the YAML editor. Remove anything and paste the code below 
+#The comments behind '#' will disappear after saving the automation and switching to the Visual Editor. 
+#in line change line 11 and line 15 you should change the entity_id and name: to suit the zone you want to regulate
+alias: _new climate schema
+description: ""
+trigger:
+  - platform: time_pattern
+    minutes: /5
+  - platform: state
+    entity_id:
+      - input_number.woonkamer_man_temp #change for your own setup
+condition: []
+action:
+  - variables:
+      name: woonkamer #change for your own setup
+      real_term: climate.{{name}}
+      fake_term: climate.{{name}}_fake_thermostat
+      delta_var: input_number.delta_{{name}}
+      temp_override: input_number.{{name}}_man_temp
+      current_temp: "{{ state_attr(real_term, 'current_temperature')}}"
+      target_temp: "{{ state_attr(fake_term, 'temperature')}}"
+  - alias: "Manual override, setpoint or EH schedule "
+    if:
+      - alias: Test for manual override is lower than 15 (no override)
+        condition: template
+        value_template: "{{ (states(temp_override) | float ) < 15}}"
+    then:
+      - alias: Select setpoint actions or standard actions
+        choose:
+          - conditions:
+              - alias: Setpoint period 1
+                condition: or
+                conditions:
+                  - condition: time
+                    after: "14:30:00"
+                    before: "17:00:00"
+                    weekday:
+                      - mon
+                      - tue
+                      - wed
+                      - thu
+                      - fri
+                  - condition: time
+                    after: "11:30:00"
+                    before: "17:00:00"
+                    weekday:
+                      - sat
+                      - sun
+            sequence:
+              - variables:
+                  setpoint_temp: 20
+              - service: climate.set_temperature
+                data:
+                  temperature: "{{setpoint_temp}}"
+                target:
+                  entity_id:
+                    - "{{fake_term}}"
+              - alias: "Delta temp depends on outside temperature "
+                if:
+                  - condition: or
+                    conditions:
+                      - condition: time
+                        before: "13:30:00"
+                        weekday:
+                          - mon
+                          - tue
+                          - wed
+                          - thu
+                          - fri
+                      - condition: time
+                        before: "11:30:00"
+                        weekday:
+                          - sat
+                          - sun
+                then:
+                  - service: input_number.set_value
+                    data:
+                      value: 0.2
+                    target:
+                      entity_id: "{{delta_var}}"
+                else:
+                  - alias: Delta temperature depends outside temp
+                    choose:
+                      - conditions:
+                          - alias: temperature below 6
+                            type: is_temperature
+                            condition: device
+                            device_id: 8cdd39ef5fe1cc759acc40569f91b840
+                            entity_id: 695808ef566216b9e6f39e0303de7b57
+                            domain: sensor
+                            below: 6
+                        sequence:
+                          - service: input_number.set_value
+                            data:
+                              value: 0.6
+                            target:
+                              entity_id:
+                                - "{{delta_var}}"
+                      - conditions:
+                          - alias: temperature above 12
+                            type: is_temperature
+                            condition: device
+                            device_id: 8cdd39ef5fe1cc759acc40569f91b840
+                            entity_id: 695808ef566216b9e6f39e0303de7b57
+                            domain: sensor
+                            above: 12
+                        sequence:
+                          - service: input_number.set_value
+                            data:
+                              value: 0.3
+                            target:
+                              entity_id:
+                                - "{{delta_var}}"
+                    default:
+                      - service: input_number.set_value
+                        data:
+                          value: 0.5
+                        target:
+                          entity_id:
+                            - "{{delta_var}}"
+            alias: setpoint overdag 20
+          - conditions:
+              - alias: Setpoint period 2
+                condition: or
+                conditions:
+                  - condition: time
+                    after: "17:00:00"
+                    before: "22:30:00"
+                    weekday:
+                      - mon
+                      - tue
+                      - wed
+                      - thu
+                      - sun
+                  - condition: time
+                    after: "17:00:00"
+                    before: "23:30:00"
+                    weekday:
+                      - sat
+                      - fri
+            sequence:
+              - variables:
+                  setpoint_temp: 20.5
+              - service: climate.set_temperature
+                data:
+                  temperature: "{{setpoint_temp}}"
+                target:
+                  entity_id:
+                    - "{{fake_term}}"
+              - if:
+                  - condition: template
+                    value_template: "{{current_temp < (target_temp -0.5)}}"
+                then:
+                  - service: input_number.set_value
+                    data:
+                      value: 0.5
+                    target:
+                      entity_id: "{{delta_var}}"
+                else:
+                  - service: input_number.set_value
+                    data:
+                      value: 0.1
+                    target:
+                      entity_id: "{{delta_var}}"
+            alias: setpoint overdag 20,5
+        default:
+          - variables:
+              setpoint_temp: 19
+          - service: climate.set_temperature
+            data:
+              temperature: "{{setpoint_temp}}"
+            target:
+              entity_id:
+                - "{{fake_term}}"
+          - service: input_number.set_value
+            data:
+              value: 0.1
+            target:
+              entity_id: "{{delta_var}}"
+    else:
+      - variables:
+          setpoint_temp: "{{ states(temp_override) }}"
+      - service: climate.set_temperature
+        data:
+          temperature: "{{setpoint_temp}}"
+        target:
+          entity_id:
+            - "{{fake_term}}"
+      - service: input_number.set_value
+        data:
+          value: 0.5
+        target:
+          entity_id: "{{delta_var}}"
+  - alias: Reset manual override after 23:50
+    if:
+      - condition: time
+        after: "23:49:00"
+        before: "23:59:00"
+    then:
+      - service: input_number.set_value
+        target:
+          entity_id: "{{temp_override}}"
+        data:
+          value: 0
+mode: single
