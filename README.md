@@ -2,6 +2,7 @@
 Configuration cotains:
 switch:
 climate:
+
 input_datetime:
   evo_aangeroepen:
 
