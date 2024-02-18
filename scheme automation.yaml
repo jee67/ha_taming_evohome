@@ -39,7 +39,7 @@ action:
       - alias: Select setpoint actions or standard actions
         choose:
           - conditions:
-              - alias: Setpoint period 1, 20°
+              - alias: Setpoint period 1, 20° weekend
                 condition: or
                 conditions:
                   - condition: time
@@ -48,6 +48,17 @@ action:
                     weekday:
                       - sat
                       - sun
+            sequence:
+              - service: climate.set_temperature
+                data:
+                  temperature: 20
+                target:
+                  entity_id:
+                    - "{{fake_term}}"
+          - conditions:
+              - alias: Setpoint period 1, 20° week
+                condition: or
+                conditions:
                   - condition: time
                     after: "14:30:00"
                     before: "17:00:00"
@@ -65,18 +76,9 @@ action:
                   entity_id:
                     - "{{fake_term}}"
           - conditions:
-              - alias: Setpoint period 2
+              - alias: Setpoint period 2 20,5° Weekend
                 condition: or
                 conditions:
-                  - condition: time
-                    after: "17:00:00"
-                    before: "22:30:00"
-                    weekday:
-                      - mon
-                      - tue
-                      - wed
-                      - thu
-                      - sun
                   - condition: time
                     after: "17:00:00"
                     before: "23:30:00"
@@ -90,7 +92,26 @@ action:
                 target:
                   entity_id:
                     - "{{fake_term}}"
-            alias: Setpoint period 2 20,5°
+          - conditions:
+              - alias: Setpoint period 2 20,5° week
+                condition: or
+                conditions:
+                  - condition: time
+                    after: "17:00:00"
+                    before: "22:30:00"
+                    weekday:
+                      - mon
+                      - tue
+                      - wed
+                      - thu
+                      - sun
+            sequence:
+              - service: climate.set_temperature
+                data:
+                  temperature: 20,5
+                target:
+                  entity_id:
+                    - "{{fake_term}}"
         default:
           - service: climate.set_temperature
             data:
