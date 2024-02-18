@@ -11,7 +11,7 @@ description: >-
  
   The automation is called every 20 minutes, or when one of the set points is
   changed or when the schedule is overruled by manual setting the temperature. 
-  trigger:
+trigger:
   - platform: time_pattern
     minutes: /20
   - platform: state
