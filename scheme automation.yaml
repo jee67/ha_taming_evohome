@@ -6,8 +6,9 @@ description: >-
   visual editor for further changes.
 
   In the trigger you should change the entity_id and in the first variables
-  block you should change name to suit the zone you want to regulate
-trigger:
+  block you should change name to suit the zone you want to regulate. In this
+  example it is ‘Woonkamer’. 
+  trigger:
   - platform: time_pattern
     minutes: /20
   - platform: state
