@@ -107,7 +107,7 @@ action:
         target:
           entity_id:
             - "{{fake_term}}"
-  - alias: Delta temperatuur instellen
+  - alias: Set Delta temperature
     choose:
       - conditions:
           - condition: template
