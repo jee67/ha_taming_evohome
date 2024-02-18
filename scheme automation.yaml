@@ -8,6 +8,9 @@ description: >-
   In the trigger you should change the entity_id and in the first variables
   block you should change name to suit the zone you want to regulate. In this
   example it is ‘Woonkamer’. 
+ 
+  The automation is called every 20 minutes, or when one of the set points is
+  changed or when the schedule is overruled by manual setting the temperature. 
   trigger:
   - platform: time_pattern
     minutes: /20
