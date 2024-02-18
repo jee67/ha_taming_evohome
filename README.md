@@ -5,7 +5,7 @@ Configuration contains:
 - switch:
 - climate:
 - input_datetime:
-  - evo_aangeroepen:
+  - evo_aangeroepen: used to limit the numer of calls to Evohome, to avoid being blocked. 
 - input_number:
   - woonkamer_man_temp:
   - delta_woonkamer:
