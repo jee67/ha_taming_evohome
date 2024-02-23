@@ -34,10 +34,40 @@ trigger:
       next_sp_countdown) %}
 
       {{ as_timestamp(sp_vlg2) < (as_timestamp(now()) )}}
-    alias: Trigger - time to change fake thermostat to next setpoint
+    alias: "Trigger - lead time to change fake thermostat to next setpoint "
   - platform: state
     entity_id:
       - input_number.woonkamer_man_temp
+  - alias: >-
+      Trigger - time to change fake thermostat to next setpoint- because they're
+      unequal
+    platform: template
+    value_template: >-
+      {% set name = 'woonkamer' %}
+
+      {% set clim = 'climate.'+name %}
+
+      {% set fake = 'climate.'+name+'_fake_thermostat' %}
+
+      {% set manual_override = 'input_number.'+name+'_man_temp' %}
+
+      {% set sp_vlg_temp = (state_attr(clim,'status').setpoints.next_sp_temp) %}
+
+      {% set sp_vlg =
+      as_timestamp(state_attr(clim,'status').setpoints.next_sp_from) %}
+
+      {% set fake_target_temp = state_attr(fake,'temperature')%}
+
+      {% set next_sp_countdown = max(((sp_vlg_temp - fake_target_temp) / (0.5 *
+      0.8) ) * 3600,61) %}
+
+      {% set sp_vlg2 = as_local(as_datetime(sp_vlg)) - timedelta(seconds =
+      next_sp_countdown) %}
+
+      {% set temp_override = manual_override %}
+
+      {{(fake_target_temp != sp_vlg_temp) and ((states(temp_override) | float )
+      < 15) and (as_timestamp(sp_vlg2) < (as_timestamp(now())) )}}
 condition: []
 action:
   - variables:
@@ -104,7 +134,7 @@ action:
         sequence:
           - service: input_number.set_value
             data:
-              value: 0.2
+              value: 0.3
             target:
               entity_id: "{{delta_var}}"
     default:
