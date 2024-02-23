@@ -1,0 +1,117 @@
+alias: _new schema v2
+description: >-
+  You can copy this code in a newly created automation in the YAML editor.
+
+  Remove anything and paste this code. After that, you could return to the
+  visual editor for further changes.
+
+  In the trigger you should change the entity_id and in the first variables
+  block you should change name to suit the zone you want to regulate. In this
+  example it is ‘Woonkamer’. 
+
+  The automation is called every 20 minutes, or when one of the set points is
+  changed or when the schedule is overruled by manual setting the temperature. 
+trigger:
+  - platform: template
+    value_template: >
+      {% set name = 'woonkamer' %}
+
+      {% set clim = 'climate.'+name %}
+
+      {% set fake = 'climate.'+name+'_fake_thermostat' %}
+
+      {% set sp_vlg_temp = (state_attr(clim,'status').setpoints.next_sp_temp) %}
+
+      {% set sp_vlg =
+      as_timestamp(state_attr(clim,'status').setpoints.next_sp_from) %}
+
+      {% set fake_target_temp = state_attr(fake,'temperature')%}
+
+      {% set next_sp_countdown = max(((sp_vlg_temp - fake_target_temp) / (0.5 *
+      0.8) ) * 3600,61) %}
+
+      {% set sp_vlg2 = as_local(as_datetime(sp_vlg)) - timedelta(seconds =
+      next_sp_countdown) %}
+
+      {{ as_timestamp(sp_vlg2) < (as_timestamp(now()) )}}
+    alias: Trigger - time to change fake thermostat to next setpoint
+  - platform: state
+    entity_id:
+      - input_number.woonkamer_man_temp
+condition: []
+action:
+  - variables:
+      name: woonkamer
+      name2: "{{name}}"
+      real_term: climate.{{name2}}
+      fake_term: climate.{{name}}_fake_thermostat
+      delta_var: input_number.delta_{{name}}
+      temp_override: input_number.{{name}}_man_temp
+      current_temp: "{{ state_attr(real_term, 'current_temperature') | float(0) }}"
+      target_temp: "{{ state_attr(fake_term, 'temperature') | float(0) }}"
+  - alias: "Manual override or change in EvoHome schedule "
+    if:
+      - alias: Test for manual override is lower than 15 (no override - copy next setpoint)
+        condition: template
+        value_template: "{{ (states(temp_override) | float ) < 15}}"
+    then:
+      - variables:
+          setpoint_temp: "{{state_attr(real_term,'status').setpoints.next_sp_temp }}"
+      - if:
+          - condition: template
+            value_template: "{{ target_temp != setpoint_temp}}"
+        then:
+          - service: climate.set_temperature
+            data:
+              temperature: "{{setpoint_temp}}"
+            target:
+              entity_id:
+                - "{{fake_term}}"
+            enabled: true
+          - service: input_number.set_value
+            metadata: {}
+            data:
+              value: "{{ setpoint_temp }}"
+            target:
+              entity_id: input_number.temp_helper_woonkamer
+    else:
+      - variables:
+          setpoint_temp: "{{ states(temp_override) }}"
+      - service: climate.set_temperature
+        data:
+          temperature: "{{setpoint_temp}}"
+        target:
+          entity_id:
+            - "{{fake_term}}"
+        enabled: true
+  - variables:
+      current_temp: "{{ state_attr(real_term, 'current_temperature') | float(0) }}"
+      target_temp: "{{ state_attr(fake_term, 'temperature') | float(0) }}"
+  - alias: Set Delta temperature - tweak for your own situation
+    choose:
+      - conditions:
+          - condition: template
+            value_template: "{{current_temp <= (target_temp - 1)}}"
+        sequence:
+          - service: input_number.set_value
+            data:
+              value: 0.5
+            target:
+              entity_id: "{{delta_var}}"
+      - conditions:
+          - condition: template
+            value_template: "{{current_temp <= (target_temp - 0.5)}}"
+        sequence:
+          - service: input_number.set_value
+            data:
+              value: 0.2
+            target:
+              entity_id: "{{delta_var}}"
+    default:
+      - service: input_number.set_value
+        data:
+          value: 0.1
+        target:
+          entity_id: "{{delta_var}}"
+    enabled: true
+mode: single
