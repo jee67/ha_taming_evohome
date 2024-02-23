@@ -8,7 +8,8 @@ description: >-
   - 
 trigger:
   - platform: time_pattern
-    minutes: /5
+    minutes: /20
+    alias: Activate every 20 minutes, just to be sure
   - platform: state
     entity_id:
       - climate.woonkamer_fake_thermostat
@@ -22,6 +23,12 @@ condition:
         attribute: preset_mode
         state: permanent
 action:
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+    alias: Delay to let other automations finish
   - variables:
       name: woonkamer
       real_therm: climate.{{name}}
