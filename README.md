@@ -12,6 +12,6 @@ Configuration contains:
 
 'schedue automation' contains the schedule for one EvoHome zone. In this schedule an outdoor thermometer is used as a device. For the scheme to work you should change it to an outdoor temperature sensor available in your own system. You can change the schedule by adding or removing setpoints and changing the delta_temperature variables. 
 
-'schedule automation v2' This is the second version of the scheme. It mainly follows the EvoHome schedule, but mute the rises by using the delta variable.
+'schedule automation v2' This is the second version of the scheme. It mainly follows the EvoHome schedule, but mute the increases of the targeted temperature by using the delta variable. When the setpoint temperature is reached, 'real thermostat' returns the control to EvoHome. 
 
 'real thermostat' automation contains the code to regulate the real thermostat for one EvoHome zone.
